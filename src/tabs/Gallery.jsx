@@ -8,6 +8,7 @@ export class Gallery extends Component {
     photos: [],
     query: '',
     page: 1,
+    isShown: false,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -17,6 +18,8 @@ export class Gallery extends Component {
       ImageService.getImages(query, page).then(result => {
         this.setState(prevState => ({
           photos: [...prevState.photos, ...result.photos],
+
+          isShown: page < Math.ceil(result.total_results / 15),
         }));
       });
     }
@@ -26,12 +29,27 @@ export class Gallery extends Component {
     this.setState({ query });
   };
 
+  handleClick = () => {
+    this.setState(prevState => ({ page: prevState.page + 1 }));
+  };
+
   render() {
-    const { onFormSubmit } = this;
+    const { onFormSubmit, handleClick } = this;
+    const { photos, isShown } = this.state;
     return (
       <>
         <Text textAlign="center">Sorry. There are no images ... 😭</Text>
         <SearchForm onFormSubmit={onFormSubmit} />
+        <Grid>
+          {photos.map(({ id, avg_color, alt, src }) => (
+            <GridItem key={id}>
+              <CardItem color={avg_color}>
+                <img src={src.large} alt={alt} />
+              </CardItem>
+            </GridItem>
+          ))}
+        </Grid>
+        {isShown && <Button onClick={handleClick}>Load more</Button>}
       </>
     );
   }
